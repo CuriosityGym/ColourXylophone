@@ -126,7 +126,7 @@ while 1 :
 			print "This comparison works"
 			print "breakpoint1"
 			play_tone(stream, freq*4, 0.2)
-	time.sleep(0.1)		      
+	#time.sleep(0.1)		      
 	      
 	  
 

@@ -13,7 +13,7 @@ testResponse='A'
 waitIterations=5
 
 duration=0.3
-freq=300
+freq=450
 samplingRate=44100
 def serial_ports():
     """ Lists serial port names
