@@ -1,3 +1,5 @@
+#sudo apt-get install portaudio19-dev
+#sudo pip install pyaudio
 import math
 import numpy
 import pyaudio

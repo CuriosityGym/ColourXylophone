@@ -1,8 +1,10 @@
+#sudo apt-get install portaudio19-dev
+# sudo pip install pyaudio
 import math
 import numpy
 import pyaudio
 
-duration=0.8
+duration=0.3
 freq=300
 def sine(frequency, length, rate):
     length = int(length * rate)
