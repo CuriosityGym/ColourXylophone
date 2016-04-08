@@ -6,6 +6,7 @@ import math
 import numpy
 import pyaudio
 from random import randint
+import atexit
 
 baudrate=115200
 timeout=0
@@ -81,6 +82,9 @@ def play_tone(stream, frequency=freq, length=duration, rate=samplingRate):
 
     stream.write(chunk.astype(numpy.float32).tostring())
 
+def closeserialport():
+    SerialPortConn.close()
+
 
 
 SerialPort=serial_ports()
@@ -127,3 +131,6 @@ while 1 :
 			#print "breakpoint1"
 			play_tone(stream, freq*4, 0.2)
 	#time.sleep(0.1)
+
+
+atexit.register(closeserialport)
