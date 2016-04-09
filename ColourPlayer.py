@@ -1,3 +1,4 @@
+import signal
 import serial
 import time, wave
 import sys
@@ -82,8 +83,10 @@ def play_tone(stream, frequency=freq, length=duration, rate=samplingRate):
 
     stream.write(chunk.astype(numpy.float32).tostring())
 
-def closeserialport():
+def sigint_handler(signum, frame):
+    print "Goodbye my dear fellow"
     SerialPortConn.close()
+    quit()
 
 
 
@@ -131,6 +134,4 @@ while 1 :
 			#print "breakpoint1"
 			play_tone(stream, freq*4, 0.2)
 	#time.sleep(0.1)
-
-
-atexit.register(closeserialport)
+        signal.signal(signal.SIGINT, sigint_handler)
