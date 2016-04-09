@@ -1,11 +1,11 @@
 #sudo apt-get install portaudio19-dev
-# sudo pip install pyaudio
+#sudo pip install pyaudio
 import math
 import numpy
 import pyaudio
 
-duration=0.3
-freq=300
+duration=1
+freq=120
 def sine(frequency, length, rate):
     length = int(length * rate)
     factor = float(frequency) * (math.pi * 2) / rate
@@ -16,7 +16,7 @@ def play_tone(stream, frequency=330, length=1, rate=44100):
     chunks = []
     chunks.append(sine(frequency, length, rate))
 
-    chunk = numpy.concatenate(chunks) * 0.25
+    chunk = numpy.concatenate(chunks) * 1
 
     stream.write(chunk.astype(numpy.float32).tostring())
 

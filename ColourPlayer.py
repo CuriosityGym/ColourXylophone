@@ -18,6 +18,7 @@ duration=0.06
 freq=450
 samplingRate=44100
 def serial_ports():
+    foundPort=False
     """ Lists serial port names
 
         :raises EnvironmentError:
@@ -41,28 +42,31 @@ def serial_ports():
 	    print port
 	    counter=0
             s = serial.Serial(port, baudrate, timeout=timeout)
-	    portDictionary=s.getSettingsDict()
+	    #portDictionary=s.getSettingsDict()
 	    time.sleep(5)
 	    #print("/".join(portDictionary))
-	    for key in portDictionary:
-  		print "the key name is " + key + " and its value is " + str(portDictionary[key])
+	    #for key in portDictionary:
+  		#print "the key name is " + key + " and its value is " + str(portDictionary[key])
 	    #s.write(enumResponse)
 	    while(counter<waitIterations):
-		if(s.inWaiting()> 0):
+		if(s.inWaiting()> 0):	
 			#print "Waiting"
-			print s.inWaiting()
+			#print s.inWaiting()
 			#s.write(enumResponse)
-			time.sleep(0.5)
-			response=s.read(1)
-			counter=counter+1
-			print response
+			time.sleep(0.5)	
+			response=s.readline()
+			counter=counter+1    
+			print response 	
 			result=port
 			s.close()
+			foundPort=True
 			break
 		if(s.inWaiting()==0):
-                        time.sleep(1)
-			counter=counter+1
+                        time.sleep(1)	
+			counter=counter+1   							
 	            	continue
+	    if foundPort:
+		break	
             s.close()
         except (OSError, serial.SerialException):
             pass
