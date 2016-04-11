@@ -35,6 +35,8 @@ int s0 = 9;
 int s1 = 8;
 int ledstate = 7;
 
+int i = 0 ;
+
 int state = 0; // 1 - red, 2 - green, 3 - blue, 0 - ignore
 
 unsigned long int pulseWidth;
@@ -43,105 +45,64 @@ int rColor = 0;
 int gColor = 0;
 int bColor = 0;
 
-
-int getcolourstate(){
-  if(rColor>230 && rColor<255 &&  gColor>0 && gColor<25 && bColor>=0 && bColor<20 ){
-    return 1;
-  }
-  if(rColor>95 && rColor<125 &&  gColor>200 && gColor<230 && bColor>=0 && bColor<20 ){
-    return 2;
-  }
-  if(rColor>5 && rColor<30 &&  gColor>90 && gColor<110 && bColor>155 && bColor<175 ){
-    return 3;
-  }
-  if(rColor>60 && rColor<80 &&  gColor>0 && gColor<30 && bColor>=0 && bColor<25 ){
-    return 4;
-  }
-  return 0;
-  /*if(rColor>10 && rColor<30 &&  gColor>110 && gColor<125 && bColor>175 && bColor<190 ){
-    state = 5;
-  }*/
+void sensorsetup(){
+ digitalWrite(s0, LOW);         // Sensor control pins for 
+ digitalWrite(s1, HIGH);        // 2% output frequency scaling
+ digitalWrite(ledstate, HIGH);  // Turn on the LEDs for illumination
 }
 
-void setup() 
-{
- bluetooth.begin(115200);
- Serial.begin(9600);
- //ring.begin();
- //ring.show();
-// ring.setBrightness(90);
-
- pinMode(s2,OUTPUT);
- pinMode(s3,OUTPUT);
- pinMode(out,INPUT);
- pinMode(s0, OUTPUT);
- pinMode(s1, OUTPUT);
- pinMode(ledstate, OUTPUT);
- 
- digitalWrite(s0, LOW);
- digitalWrite(s1, HIGH);
- digitalWrite(ledstate, HIGH);
+void connectionsetup(){
+  for(i=0;i<5;i++){             // Send 5 'A' characters over
+  bluetooth.write(0x41);        // bluetooth for recognition of device
+ }
 }
 
-void loop() 
-{
-  //read red color
-   digitalWrite(s2,LOW);
-   digitalWrite(s3,LOW);
-   pulseWidth=pulseIn(out,LOW);
-   rColor = (pulseWidth/400) - 1;
+void readred(){
+   digitalWrite(s2,LOW);          // Tell the sensor to
+   digitalWrite(s3,LOW);          // send red colour values
+   pulseWidth=pulseIn(out,LOW);   // Count the number of
+   rColor = (pulseWidth/400) - 1; // pulses received from the sensor
    rColor = (255 -rColor);
+}
 
-   //read green color
-   digitalWrite(s2,HIGH);
-   digitalWrite(s3,HIGH);
-   pulseWidth=pulseIn(out,LOW);
-   gColor = (pulseWidth/400) - 1;
+void readgreen(){
+   digitalWrite(s2,HIGH);         // Tell the sensor to
+   digitalWrite(s3,HIGH);         // send green colour values
+   pulseWidth=pulseIn(out,LOW);   // Count the number of
+   gColor = (pulseWidth/400) - 1; // pulses received from the sensor
    gColor = (255 -gColor);
+}
 
-   //read blue color
-   digitalWrite(s2,LOW);
-   digitalWrite(s3,HIGH);
-   pulseWidth=pulseIn(out,LOW);
-   bColor = (pulseWidth/400) - 1;
-   bColor = (255 -bColor);
-  // taking out orignal colors
+void readblue(){
+   digitalWrite(s2,LOW);          // Tell the sensor to
+   digitalWrite(s3,HIGH);         // send blue colour values
+   pulseWidth=pulseIn(out,LOW);   // Count the number of 
+   bColor = (pulseWidth/400) - 1; // pulses received from the sensor
+   bColor = (255 -bColor); 
+}
 
- /*  Serial.print(rColor);
-   Serial.print(",");
-   Serial.print(gColor);
-   Serial.print(",");
-   Serial.println(bColor);
-   
-   delay(100);
-*/
-
-    
-////////////////////////////////////////// TUNE THE BELOW GIVEN rColor,gColor,bColor for accurate results.//////////////////////////////////////////
-   
-  //White Color
+void tunecolours(){
+  // Tuning white colour
   if (rColor >=251 && gColor >=251 && bColor >=251)
  {
- rColor = 255;
+ rColor = 255;                
  bColor = 255; 
  gColor = 255;
-  }
-  
-  //red color
+  }  
+  // Tuning red color
 else  if(rColor > gColor && gColor > bColor)
   {
-   rColor = rColor ;
-   gColor=gColor/1.5;  // gColor = gColor   ;
-   bColor=bColor /10;     //bColor = bColor * 0.1;
+   rColor = rColor ;           
+   gColor=gColor/1.5;  
+   bColor=bColor /10;  
   }
   else if(rColor > bColor && bColor > gColor)
   {
    rColor = rColor  ;
    bColor = bColor /8;
-   gColor = gColor /10;  //0.50
+   gColor = gColor /10;
   }
-
-// green color   
+  // Tuning green color   
    else  if(gColor > rColor && rColor > bColor)
   {
    gColor = gColor;
@@ -149,16 +110,13 @@ else  if(rColor > gColor && gColor > bColor)
    bColor = bColor /10;
   }
   else if(gColor > bColor && bColor > rColor)
-  
   {
    gColor = gColor;
    bColor = bColor/2;
    rColor = rColor /10;
-  }
-  
-  //blue color
+  }  
+  // Tuning blue color
   else if(bColor > rColor && rColor > gColor)
-  
   {
    bColor = bColor ;
    rColor = rColor/3;
@@ -170,46 +128,74 @@ else  if(rColor > gColor && gColor > bColor)
    gColor = gColor/2;
    rColor = rColor/10;
   }
-  
-  // no Color(black out)
+}
 
- /*else
-  {
-rColor=0;
-gColor=0;
-bColor=0;
+int getcolourstate(){
+  if(rColor>230 && rColor<255 &&  gColor>0 && gColor<25 && bColor>=0 && bColor<20 ){
+    return 1;   // Return 1 if the colour found is red
   }
-*/
-  // correcting red,blue,green color
-bColor =bColor * .06;
-gColor =gColor * .95;
-//rColor =rColor * .002; 
-   /*Serial.print(rColor);
-   Serial.print(",");
-   Serial.print(gColor);
-   Serial.print(",");
-   Serial.println(bColor);*/
+  if(rColor>95 && rColor<125 &&  gColor>200 && gColor<230 && bColor>=0 && bColor<20 ){
+    return 2;   // Return 2 if the colour found is green
+  }
+  if(rColor>5 && rColor<30 &&  gColor>90 && gColor<110 && bColor>155 && bColor<175 ){
+    return 3;   // Return 3 if the colour found is blue
+  }
+  if(rColor>60 && rColor<80 &&  gColor>0 && gColor<30 && bColor>=0 && bColor<25 ){
+    return 4;   // Return 4 if the colour found is violet
+  }
+  return 0;
+  /*if(rColor>10 && rColor<30 &&  gColor>110 && gColor<125 && bColor>175 && bColor<190 ){
+    state = 5;
+  }*/
+}
+
+void setup() 
+{
+ bluetooth.begin(115200);
+ //Serial.begin(9600);
+ pinMode(s2,OUTPUT);         //Set the sensor control pins as OUTPUT
+ pinMode(s3,OUTPUT);         //Set the sensor control pins as OUTPUT
+ pinMode(out,INPUT);         //Set the sensor output pins as INPUT
+ pinMode(s0, OUTPUT);        //Set the sensor control pins as OUTPUT
+ pinMode(s1, OUTPUT);        //Set the sensor control pins as OUTPUT
+ pinMode(ledstate, OUTPUT);  //Set the LED control pins as OUTPUT
+ 
+ sensorsetup();              // Call the function to setup the sensor
+ 
+ connectionsetup();
+}
+
+void loop() 
+{
+  readred();         // Read red values from sensor
+  readgreen();       // Read green values from sensor
+  readblue();        // Read blue values from sensor
    
-   //delay(100);
-   state = getcolourstate();
-   Serial.print("R = ");
-   Serial.println(rColor);
-   Serial.print("G = ");
-   Serial.println(gColor);
-   Serial.print("B = ");
-   Serial.println(bColor);
-   switch(state){
-    case 0 : bluetooth.write(0x30);
-             break;
-    case 1 : bluetooth.write(0x31);
-             break;
-    case 2 : bluetooth.write(0x32);
-             break;
-    case 3 : bluetooth.write(0x33);
-             break;
-    case 4 : bluetooth.write(0x34);
-             break;
-    default : break;
-   }
-   delay(500);
+  tunecolours();     // Tuning the colours for more accurate results.  
+
+  bColor =bColor * .06;
+  gColor =gColor * .95;
+  //rColor =rColor * .002;  
+  
+  state = getcolourstate(); // Fetch the colour state to send over bluetooth.
+  /*Serial.print("R = ");
+  Serial.println(rColor);
+  Serial.print("G = ");
+  Serial.println(gColor);
+  Serial.print("B = ");
+  Serial.println(bColor);*/
+  switch(state){
+   case 0 : bluetooth.write(0x30);  // Send ASCII char 0
+            break;
+   case 1 : bluetooth.write(0x31);  // Send ASCII char 1
+            break;
+   case 2 : bluetooth.write(0x32);  // Send ASCII char 2
+            break;
+   case 3 : bluetooth.write(0x33);  // Send ASCII char 3
+            break;
+   case 4 : bluetooth.write(0x34);  // Send ASCII char 4
+            break;
+   default : break;
+  }
+  delay(50);
 }
