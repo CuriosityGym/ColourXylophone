@@ -2,11 +2,19 @@
 
 Tutorial:http://www.toptechboy.com/arduino/lesson-15-super-cool-arduino-color-sensor-project/
 
-S0 S1 OUTPUT FREQUENCY SCALING           S2 S3 PHOTODIODE TYPE
-L L Power down                            L L Red
-L H 2%                                    L H Blue
-H L 20%                                   H L Clear (no filter)
-H H 100%                                  H H Green
+S0 S1 OUTPUT FREQUENCY SCALING           
+L  L  Power down                            
+L  H  2%                                    
+H  L  20%                                   
+H  H  100%                                  
+
+
+S2 S3 PHOTODIODE TYPE
+L  L  Red
+L  H  Blue
+H  L  Clear (no filter)
+H  H  Green
+
 
 s0=Gnd
 s1=VCC
@@ -21,23 +29,21 @@ BGR
 
 tunned for most of the colors 
 ******************************************************************************************/
-#include <Adafruit_NeoPixel.h>
 #include <avr/power.h>
 #include <SoftwareSerial.h>
 
 SoftwareSerial bluetooth(3,4);
-//#define wsled 6
-//Adafruit_NeoPixel ring = Adafruit_NeoPixel(16, wsled, NEO_GRB + NEO_KHZ800);
-int s2 = 10;  //color sensor
-int s3 = 11;  //color sensor
-int out = 2;  //color sensor
-int s0 = 9;
-int s1 = 8;
-int ledstate = 7;
+
+int s2 = 10;               //color sensor filter type control pin
+int s3 = 11;               //color sensor filter type control pin
+int sensoroutput = 2;      //color sensor output pin
+int s0 = 9;                //color sensor power control pin
+int s1 = 8;                //color sensor power control pin
+int ledstate = 7;          //sensor LED control pin
 
 int i = 0 ;
 
-int state = 0; // 1 - red, 2 - green, 3 - blue, 0 - ignore
+int colourstate = 0; // 1 - red, 2 - green, 3 - blue, 4 - violet, 0 - nocolor
 
 unsigned long int pulseWidth;
 
@@ -60,7 +66,7 @@ void connectionsetup(){
 void readred(){
    digitalWrite(s2,LOW);          // Tell the sensor to
    digitalWrite(s3,LOW);          // send red colour values
-   pulseWidth=pulseIn(out,LOW);   // Count the number of
+   pulseWidth=pulseIn(sensoroutput,LOW);   // Count the number of
    rColor = (pulseWidth/400) - 1; // pulses received from the sensor
    rColor = (255 -rColor);
 }
@@ -68,7 +74,7 @@ void readred(){
 void readgreen(){
    digitalWrite(s2,HIGH);         // Tell the sensor to
    digitalWrite(s3,HIGH);         // send green colour values
-   pulseWidth=pulseIn(out,LOW);   // Count the number of
+   pulseWidth=pulseIn(sensoroutput,LOW);   // Count the number of
    gColor = (pulseWidth/400) - 1; // pulses received from the sensor
    gColor = (255 -gColor);
 }
@@ -76,7 +82,7 @@ void readgreen(){
 void readblue(){
    digitalWrite(s2,LOW);          // Tell the sensor to
    digitalWrite(s3,HIGH);         // send blue colour values
-   pulseWidth=pulseIn(out,LOW);   // Count the number of 
+   pulseWidth=pulseIn(sensoroutput,LOW);   // Count the number of 
    bColor = (pulseWidth/400) - 1; // pulses received from the sensor
    bColor = (255 -bColor); 
 }
@@ -131,16 +137,16 @@ else  if(rColor > gColor && gColor > bColor)
 }
 
 int getcolourstate(){
-  if(rColor>230 && rColor<255 &&  gColor>0 && gColor<25 && bColor>=0 && bColor<20 ){
+  if(rColor>230 && rColor<255 &&  gColor>0 && gColor<25 && bColor>=0 && bColor<20 ){      // rgb range for red color
     return 1;   // Return 1 if the colour found is red
   }
-  if(rColor>95 && rColor<125 &&  gColor>200 && gColor<230 && bColor>=0 && bColor<20 ){
+  if(rColor>95 && rColor<125 &&  gColor>200 && gColor<230 && bColor>=0 && bColor<20 ){    // rgb range for green color
     return 2;   // Return 2 if the colour found is green
   }
-  if(rColor>5 && rColor<30 &&  gColor>90 && gColor<110 && bColor>155 && bColor<175 ){
+  if(rColor>5 && rColor<30 &&  gColor>90 && gColor<110 && bColor>155 && bColor<175 ){     // rgb range for blue color
     return 3;   // Return 3 if the colour found is blue
   }
-  if(rColor>60 && rColor<80 &&  gColor>0 && gColor<30 && bColor>=0 && bColor<25 ){
+  if(rColor>60 && rColor<80 &&  gColor>0 && gColor<30 && bColor>=0 && bColor<25 ){        // rgb range for violet color
     return 4;   // Return 4 if the colour found is violet
   }
   return 0;
@@ -155,7 +161,7 @@ void setup()
  //Serial.begin(9600);
  pinMode(s2,OUTPUT);         //Set the sensor control pins as OUTPUT
  pinMode(s3,OUTPUT);         //Set the sensor control pins as OUTPUT
- pinMode(out,INPUT);         //Set the sensor output pins as INPUT
+ pinMode(sensoroutput,INPUT);         //Set the sensor output pins as INPUT
  pinMode(s0, OUTPUT);        //Set the sensor control pins as OUTPUT
  pinMode(s1, OUTPUT);        //Set the sensor control pins as OUTPUT
  pinMode(ledstate, OUTPUT);  //Set the LED control pins as OUTPUT
@@ -177,14 +183,8 @@ void loop()
   gColor =gColor * .95;
   //rColor =rColor * .002;  
   
-  state = getcolourstate(); // Fetch the colour state to send over bluetooth.
-  /*Serial.print("R = ");
-  Serial.println(rColor);
-  Serial.print("G = ");
-  Serial.println(gColor);
-  Serial.print("B = ");
-  Serial.println(bColor);*/
-  switch(state){
+  colourstate = getcolourstate(); // Fetch the colour state to send over bluetooth.
+  switch(colourstate){
    case 0 : bluetooth.write(0x30);  // Send ASCII char 0
             break;
    case 1 : bluetooth.write(0x31);  // Send ASCII char 1
